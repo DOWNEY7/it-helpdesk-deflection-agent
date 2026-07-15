@@ -4,7 +4,6 @@ Uses TestClient in mock mode (no Azure credentials needed).
 """
 from __future__ import annotations
 
-import pytest
 
 
 class TestChatEndpoint:

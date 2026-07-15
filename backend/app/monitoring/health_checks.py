@@ -65,7 +65,7 @@ async def _check_azure_openai() -> tuple[ServiceStatus, float]:
 
 async def _check_escalation_store() -> tuple[ServiceStatus, float]:
     """Check that the escalation store path is readable/writable."""
-    settings = get_settings()
+
     start = time.perf_counter()
     store_path = Path("./data/escalations.json")
     try:

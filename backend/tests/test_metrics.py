@@ -3,8 +3,6 @@ Tests for Prometheus metrics — verify counters increment correctly.
 """
 from __future__ import annotations
 
-import pytest
-from prometheus_client import REGISTRY as DEFAULT_REGISTRY
 
 from app.monitoring.metrics import (
     REGISTRY,

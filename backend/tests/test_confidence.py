@@ -3,7 +3,7 @@ Tests for the confidence scoring and gate logic.
 """
 from __future__ import annotations
 
-import pytest
+
 
 from app.models import Source
 from app.services.confidence import ConfidenceGate, compute_confidence

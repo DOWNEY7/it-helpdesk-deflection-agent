@@ -7,7 +7,7 @@ from __future__ import annotations
 import time
 from uuid import uuid4
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, status
 
 from app.models import (
     ChatRequest,
@@ -51,7 +51,6 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
 
     request_id = str(uuid4())
     client_ip = request.client.host if request.client else "unknown"
-    start = time.perf_counter()
 
     # ── Stage 1: Input guardrail ───────────────────────────────────────────
     guard = get_input_guard()
@@ -94,7 +93,7 @@ async def chat(request: Request, body: ChatRequest) -> ChatResponse:
         history = list(body.conversation_history) + [
             Message(role="user", content=sanitised_query)
         ]
-        ticket: EscalationTicket = get_escalation_service().create_ticket(
+        get_escalation_service().create_ticket(
             conversation_history=history,
             confidence_score=confidence,
             session_id=body.session_id,

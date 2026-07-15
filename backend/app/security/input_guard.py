@@ -8,7 +8,7 @@ from __future__ import annotations
 import hashlib
 import html
 import re
-from uuid import uuid4
+
 
 from app.models import GuardResult, SecurityEvent, ThreatType
 from app.monitoring.metrics import (

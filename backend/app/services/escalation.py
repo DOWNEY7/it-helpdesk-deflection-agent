@@ -6,7 +6,7 @@ Storage: local JSON file (drop-in swap for CosmosDB).
 from __future__ import annotations
 
 import json
-import re
+
 from datetime import datetime
 from pathlib import Path
 from threading import Lock
@@ -31,7 +31,7 @@ _CATEGORY_SIGNALS: dict[str, list[str]] = {
     "access": ["password", "login", "account", "mfa", "sso", "lockout", "credential", "permission", "access", "provision", "leaver"],
     "network": ["vpn", "wifi", "network", "internet", "proxy", "firewall", "connection", "cisco", "globalprotect"],
     "m365": ["teams", "outlook", "onedrive", "sharepoint", "office", "365", "microsoft", "licence", "license", "subscription"],
-    "hardware": ["laptop", "computer", "monitor", "dock", "usb", "keyboard", "mouse", "screen", "bios", "device"],
+    "hardware": ["laptop", "computer", "monitor", "dock", "usb", "keyboard", "mouse", "screen", "bios", "device", "printer"],
     "software": ["install", "software", "app", "application", "chrome", "edge", "browser", "java", "adobe", "update"],
     "security": ["phishing", "virus", "malware", "bitlocker", "encryption", "suspicious", "threat", "ransomware"],
     "email": ["email", "mail", "inbox", "outlook", "mailbox", "distribution", "spam", "out of office"],

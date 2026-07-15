@@ -6,7 +6,7 @@ echoed to stdout. The file is never overwritten — only appended.
 from __future__ import annotations
 
 import json
-from pathlib import Path
+
 from threading import Lock
 
 from app.config import get_settings
@@ -49,7 +49,7 @@ class AuditLogger:
         """Return the most recent N events (newest last)."""
         try:
             lines = self._path.read_text(encoding="utf-8").strip().splitlines()
-            return [json.loads(l) for l in lines[-limit:]]
+            return [json.loads(line) for line in lines[-limit:]]
         except (OSError, json.JSONDecodeError):
             return []
 
