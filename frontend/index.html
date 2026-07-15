@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Internal IT Helpdesk AI assistant — get instant answers to common IT questions without waiting for a support ticket.">
+  <title>IT Support Assistant</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ── Page-specific layout ─────────────────────────────────────────── */
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding-top: 60px;
+    }
+
+    .chat-layout {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      max-width: 860px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem 1rem;
+      gap: 1rem;
+    }
+
+    /* Welcome hero */
+    .welcome-hero {
+      text-align: center;
+      padding: 2.5rem 1rem;
+    }
+    .welcome-hero .hero-icon {
+      width: 64px; height: 64px;
+      background: var(--grad-primary);
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1.25rem;
+      box-shadow: var(--shadow-glow);
+    }
+    .welcome-hero h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      background: var(--grad-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    .welcome-hero p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* Suggestion chips */
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 1.5rem;
+    }
+    .suggestion-chip {
+      padding: 0.4rem 1rem;
+      border-radius: var(--radius-full);
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .suggestion-chip:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      background: rgba(59,130,246,0.1);
+    }
+
+    /* Messages area */
+    #messages-container {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      padding: 0.5rem 0;
+      scroll-behavior: smooth;
+    }
+
+    .message-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    .message-row.user { flex-direction: row-reverse; }
+
+    .avatar {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .avatar-agent {
+      background: var(--grad-primary);
+    }
+    .avatar-user {
+      background: rgba(255,255,255,0.1);
+    }
+
+    .bubble-content { flex: 1; }
+
+    .sources-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      margin-top: 0.6rem;
+    }
+
+    .confidence-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .confidence-bar {
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .confidence-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.5s ease;
+    }
+
+    /* Escalation card */
+    .escalation-card {
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.2);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+    }
+    .escalation-card .esc-title {
+      font-weight: 600;
+      color: var(--accent-amber);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .escalation-card .esc-meta {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.6rem;
+    }
+
+    /* Input area */
+    .input-area {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+      padding: 1rem;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-xl);
+      transition: border-color var(--transition);
+    }
+    .input-area:focus-within { border-color: var(--border-accent); }
+
+    #message-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      resize: none;
+      padding: 0.25rem 0;
+      min-height: 24px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    #message-input:focus { outline: none; }
+
+    #send-btn {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      border: none;
+      background: var(--grad-primary);
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all var(--transition);
+    }
+    #send-btn:hover { transform: scale(1.05); }
+    #send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .char-count {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: right;
+      padding-right: 0.25rem;
+    }
+    .char-count.warn { color: var(--accent-amber); }
+
+    /* Disclaimer banner */
+    .disclaimer-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: var(--radius-sm);
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.2);
+      font-size: 0.75rem;
+      color: #fbbf24;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navigation ──────────────────────────────────────────────────────── -->
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">
+    <div class="brand-icon">🤖</div>
+    <span>IT Support Assistant</span>
+  </a>
+  <div class="navbar-links" style="display:flex; align-items:center; gap:0.25rem;">
+    <a href="index.html" class="nav-link active">Chat</a>
+    <a href="admin.html" class="nav-link">Tickets</a>
+    <a href="monitor.html" class="nav-link">Monitor</a>
+    <div class="nav-status-dot" id="status-dot" title="System healthy"></div>
+  </div>
+</nav>
+
+<!-- ── Main ────────────────────────────────────────────────────────────── -->
+<div class="page-wrapper">
+  <div class="chat-layout">
+
+    <!-- Welcome (shown until first message) -->
+    <div id="welcome-hero" class="welcome-hero">
+      <div class="hero-icon">💬</div>
+      <h1>How can I help you today?</h1>
+      <p>Ask me anything about IT support — passwords, VPN, printers, Microsoft 365, and more. I'll answer instantly or raise a ticket for the IT team.</p>
+      <div class="suggestions">
+        <button class="suggestion-chip" onclick="fillSuggestion(this)">How do I reset my password?</button>
+        <button class="suggestion-chip" onclick="fillSuggestion(this)">My VPN won't connect</button>
+        <button class="suggestion-chip" onclick="fillSuggestion(this)">How do I map a network printer?</button>
+        <button class="suggestion-chip" onclick="fillSuggestion(this)">OneDrive won't sync my files</button>
+        <button class="suggestion-chip" onclick="fillSuggestion(this)">Teams audio isn't working</button>
+        <button class="suggestion-chip" onclick="fillSuggestion(this)">I received a suspicious email</button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div id="messages-container" style="display:none;"></div>
+
+    <!-- Input -->
+    <div>
+      <div class="input-area">
+        <textarea
+          id="message-input"
+          class="input-field"
+          placeholder="Describe your IT issue…"
+          rows="1"
+          maxlength="2000"
+          aria-label="IT support message input"
+        ></textarea>
+        <button id="send-btn" aria-label="Send message" title="Send (Enter)">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.27 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+          </svg>
+        </button>
+      </div>
+      <div class="char-count" id="char-count">0 / 2000</div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/chat.js"></script>
+</body>
+</html>

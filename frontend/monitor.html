@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="IT Helpdesk — Live monitoring dashboard showing real-time metrics, system health, and security events.">
+  <title>IT Helpdesk — Monitor</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .page-wrapper { padding: 80px 1.5rem 2rem; max-width: 1400px; margin: 0 auto; }
+    h2 { font-size: 1.1rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-primary); }
+    h2 span { font-size: 0.75rem; font-weight: 400; color: var(--text-muted); margin-left: 0.5rem; }
+
+    .section { margin-bottom: 2rem; }
+
+    /* Confidence histogram */
+    .histogram { display: flex; align-items: flex-end; gap: 4px; height: 100px; padding: 0.75rem; }
+    .hist-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .hist-bar {
+      width: 100%;
+      background: var(--grad-primary);
+      border-radius: 3px 3px 0 0;
+      transition: height 0.5s ease;
+      min-height: 2px;
+    }
+    .hist-label { font-size: 0.6rem; color: var(--text-muted); }
+
+    /* Log stream */
+    .log-stream {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .log-line { padding: 0.2rem 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .log-line:last-child { border: none; }
+    .log-INFO    { color: #60a5fa; }
+    .log-WARNING { color: #fbbf24; }
+    .log-ERROR   { color: #f87171; }
+    .log-time    { color: var(--text-muted); margin-right: 0.5rem; }
+
+    /* Security events table */
+    .threat-badge {
+      font-size: 0.65rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .refresh-tag {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .refresh-dot {
+      width: 6px; height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--accent-green);
+      animation: pulse-green 2s infinite;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="index.html" class="navbar-brand">
+    <div class="brand-icon">🤖</div>
+    <span>IT Support Assistant</span>
+  </a>
+  <div class="navbar-links" style="display:flex; align-items:center; gap:0.25rem;">
+    <a href="index.html" class="nav-link">Chat</a>
+    <a href="admin.html" class="nav-link">Tickets</a>
+    <a href="monitor.html" class="nav-link active">Monitor</a>
+    <div class="nav-status-dot" id="status-dot"></div>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+
+  <!-- Page header -->
+  <div class="flex items-center justify-between mb-4" style="margin-bottom:1.5rem;">
+    <div>
+      <h1 style="font-size:1.5rem; font-weight:700; background:var(--grad-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">
+        Live Monitoring
+      </h1>
+      <p class="text-secondary text-sm">Real-time metrics, health, and security events</p>
+    </div>
+    <div class="refresh-tag">
+      <div class="refresh-dot"></div>
+      Auto-refresh 30s — <span id="last-refresh">—</span>
+    </div>
+  </div>
+
+  <!-- Health Bar -->
+  <div class="section">
+    <div class="health-bar" id="health-bar">
+      <div class="health-item">
+        <div class="health-dot" id="dot-overall"></div>
+        <span id="label-overall" class="text-sm font-semibold">System</span>
+      </div>
+      <div class="health-item">
+        <div class="health-dot" id="dot-search"></div>
+        <span class="text-sm text-secondary">Azure AI Search</span>
+      </div>
+      <div class="health-item">
+        <div class="health-dot" id="dot-openai"></div>
+        <span class="text-sm text-secondary">Azure OpenAI</span>
+      </div>
+      <div class="health-item">
+        <div class="health-dot" id="dot-store"></div>
+        <span class="text-sm text-secondary">Escalation Store</span>
+      </div>
+      <div style="margin-left:auto; font-size:0.75rem; color:var(--text-muted);" id="latency-info"></div>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="section">
+    <h2>Business KPIs <span>rolling totals</span></h2>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Deflection Rate</div>
+        <div class="kpi-value" id="kpi-deflection">—</div>
+        <div class="kpi-sub">answered without ticket</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Total Queries</div>
+        <div class="kpi-value" id="kpi-total">—</div>
+        <div class="kpi-sub">all time</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Deflected</div>
+        <div class="kpi-value" id="kpi-deflected" style="background:var(--grad-green); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">—</div>
+        <div class="kpi-sub">answered by agent</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Escalated</div>
+        <div class="kpi-value" id="kpi-escalated" style="background:var(--grad-amber); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">—</div>
+        <div class="kpi-sub">tickets raised</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Security Blocks</div>
+        <div class="kpi-value" id="kpi-blocks" style="background:var(--grad-red); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">—</div>
+        <div class="kpi-sub">requests blocked today</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-column: Confidence histogram + Log stream -->
+  <div class="section" style="display:grid; grid-template-columns:1fr 1.5fr; gap:1.5rem;">
+
+    <div>
+      <h2>Confidence Distribution</h2>
+      <div class="glass-card" style="padding:1rem;">
+        <div class="histogram" id="confidence-histogram">
+          <!-- rendered by JS -->
+        </div>
+        <div style="display:flex; justify-content:space-between; padding:0 0.75rem; font-size:0.65rem; color:var(--text-muted);">
+          <span>0.0</span><span>0.5</span><span>1.0</span>
+        </div>
+        <div style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;" id="hist-summary">
+          —
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <h2>Live Log Stream <span>last 20 events</span></h2>
+      <div class="log-stream" id="log-stream">
+        <div class="log-line log-INFO"><span class="log-time">—</span>Waiting for data…</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Security Events -->
+  <div class="section">
+    <h2>Recent Security Events <span>last 20</span></h2>
+    <div class="glass-card" style="overflow:hidden;">
+      <table class="data-table" id="security-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Threat Type</th>
+            <th>Severity</th>
+            <th>Action</th>
+            <th>Rule</th>
+            <th>Input Snippet</th>
+          </tr>
+        </thead>
+        <tbody id="security-tbody">
+          <tr><td colspan="6" style="text-align:center; padding:2rem; color:var(--text-muted);">No security events recorded yet</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/monitor.js"></script>
+</body>
+</html>
