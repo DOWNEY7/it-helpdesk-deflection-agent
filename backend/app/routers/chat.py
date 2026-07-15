@@ -12,7 +12,6 @@ from fastapi import APIRouter, HTTPException, Request, status
 from app.models import (
     ChatRequest,
     ChatResponse,
-    EscalationTicket,
     Message,
 )
 from app.monitoring.log_schema import ErrorLogEvent, RequestLogEvent
