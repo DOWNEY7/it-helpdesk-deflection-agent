@@ -30,7 +30,7 @@ _LOCK = Lock()
 _CATEGORY_SIGNALS: dict[str, list[str]] = {
     "access": ["password", "login", "account", "mfa", "sso", "lockout", "credential", "permission", "access", "provision", "leaver"],
     "network": ["vpn", "wifi", "network", "internet", "proxy", "firewall", "connection", "cisco", "globalprotect"],
-    "m365": ["teams", "outlook", "onedrive", "sharepoint", "office", "365", "microsoft", "licence", "license", "subscription"],
+    "m365": ["teams", "outlook", "onedrive", "sharepoint", "office 365", "365", "microsoft", "licence", "license", "subscription"],
     "hardware": ["laptop", "computer", "monitor", "dock", "usb", "keyboard", "mouse", "screen", "bios", "device", "printer"],
     "software": ["install", "software", "app", "application", "chrome", "edge", "browser", "java", "adobe", "update"],
     "security": ["phishing", "virus", "malware", "bitlocker", "encryption", "suspicious", "threat", "ransomware"],
