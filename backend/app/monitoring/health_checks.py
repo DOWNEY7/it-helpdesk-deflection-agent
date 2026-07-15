@@ -81,21 +81,16 @@ async def _check_escalation_store() -> tuple[ServiceStatus, float]:
 
 async def run_health_checks() -> HealthStatus:
     """Run all dependency checks concurrently and return aggregated status."""
-    search_status, search_latency, openai_status, openai_latency, store_status, store_latency = await asyncio.gather(
+    search_result, openai_result, store_result = await asyncio.gather(
         _check_azure_search(),
         _check_azure_openai(),
         _check_escalation_store(),
-        return_exceptions=False,
-    ) if False else [*await asyncio.gather(
-        _check_azure_search(),
-        _check_azure_openai(),
-        _check_escalation_store(),
-    )]
+    )
 
     # Unpack tuples
-    s_status, s_lat = search_status
-    o_status, o_lat = openai_status
-    st_status, st_lat = store_status
+    s_status, s_lat = search_result
+    o_status, o_lat = openai_result
+    st_status, st_lat = store_result
 
     # Update Prometheus gauges
     service_health_status.labels(service="azure_search").set(
